@@ -199,7 +199,7 @@ under the License.
     <javaVersion>8</javaVersion>
     <!-- for dependencies -->
     <doxiaVersion>2.0.0-M3</doxiaVersion>
-    <doxiaSitetoolsVersion>2.0.0-M3</doxiaSitetoolsVersion>
+    <doxiaSitetoolsVersion>2.0.0-M4-268</doxiaSitetoolsVersion>
     <jettyVersion>9.4.48.v20220622</jettyVersion>
     <wagonVersion>3.5.2</wagonVersion>
     <slf4jVersion>1.7.36</slf4jVersion>
@@ -377,19 +377,19 @@ under the License.
 
     <!-- Doxia Sitetools -->
     <dependency>
-      <groupId>org.apache.maven.doxia</groupId>
+      <groupId>com.github.jdimeo.maven-doxia-sitetools</groupId>
       <artifactId>doxia-decoration-model</artifactId>
       <version>${doxiaSitetoolsVersion}</version>
     </dependency>
 
     <dependency>
-      <groupId>org.apache.maven.doxia</groupId>
+      <groupId>com.github.jdimeo.maven-doxia-sitetools</groupId>
       <artifactId>doxia-site-renderer</artifactId>
       <version>${doxiaSitetoolsVersion}</version>
     </dependency>
 
     <dependency>
-      <groupId>org.apache.maven.doxia</groupId>
+      <groupId>com.github.jdimeo.maven-doxia-sitetools</groupId>
       <artifactId>doxia-integration-tools</artifactId>
       <version>${doxiaSitetoolsVersion}</version>
     </dependency>
