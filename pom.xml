@@ -172,6 +172,13 @@ under the License.
   <prerequisites>
     <maven>${mavenVersion}</maven>
   </prerequisites>
+  
+  <repositories>
+    <repository>
+	  <id>jitpack.io</id> 
+	  <url>https://jitpack.io</url>
+	</repository>
+  </repositories>
 
   <scm>
     <connection>scm:git:https://gitbox.apache.org/repos/asf/maven-site-plugin.git</connection>
