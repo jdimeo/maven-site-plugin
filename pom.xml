@@ -31,7 +31,7 @@ under the License.
 
   <groupId>com.github.jdimeo</groupId>
   <artifactId>maven-site-plugin</artifactId>
-  <version>4.0.0-M3-DST268</version>
+  <version>4.0.0-M4-DST268</version>
   <packaging>maven-plugin</packaging>
 
   <name>Apache Maven Site Plugin</name>
