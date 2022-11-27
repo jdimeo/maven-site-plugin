@@ -19,6 +19,7 @@
  */
 
 import java.io.*;
+import org.codehaus.plexus.util.*;
 
 boolean result = true;
 
@@ -26,6 +27,77 @@ boolean result = true;
 
 try
 {
+    // SITE
+
+    File topLevelDirectory = new File( basedir, "target/site" );
+    if ( !topLevelDirectory.exists() || !topLevelDirectory.isDirectory() )
+    {
+        System.err.println( "Site directory '" + topLevelDirectory + "' is missing or not a directory." );
+        return false;
+    }
+
+    File moduleDirectory = new File( basedir, "mymodule/target/site" );
+    if ( !moduleDirectory.exists() || !moduleDirectory.isDirectory() )
+    {
+        System.err.println( "Site module directory '" + moduleDirectory + "' is missing or not a directory." );
+        return false;
+    }
+
+    File indexFile = new File( topLevelDirectory, "index.html" );
+    if ( !indexFile.exists() || !indexFile.isFile() )
+    {
+        System.err.println( "Site index.html '" + indexFile + "' is missing or not a file." );
+        return false;
+    }
+    String content = FileUtils.fileRead( indexFile, "UTF-8" );
+    if ( !content.contains( "the following locales are supported: [en, fr]" ) )
+    {
+        System.err.println( "index.html does not contain supported locales" );
+        return false;
+    }
+
+    File projectInfoFile = new File( topLevelDirectory, "project-info.html" );
+    if ( !projectInfoFile.exists() || !projectInfoFile.isFile() )
+    {
+        System.err.println( "Site project-info.html '" + projectInfoFile + "' is missing or not a file." );
+        return false;
+    }
+
+    File frDirectory = new File( topLevelDirectory, "fr" );
+    if ( !frDirectory.exists() || !frDirectory.isDirectory() )
+    {
+        System.err.println( "Site fr directory '" + frDirectory + "' is missing or not a directory." );
+        return false;
+    }
+
+    File frProjectInfoFile = new File( frDirectory, "project-info.html" );
+    if ( !frProjectInfoFile.exists() || !frProjectInfoFile.isFile() )
+    {
+        System.err.println( "Site fr project-info.html '" + frProjectInfoFile + "' is missing or not a file." );
+        return false;
+    }
+
+    File frModuleDirectory = new File( moduleDirectory, "fr" );
+    if ( !frModuleDirectory.exists() || !frModuleDirectory.isDirectory() )
+    {
+        System.err.println( "Site fr module directory '" + frModuleDirectory + "' is missing or not a directory." );
+        return false;
+    }
+
+    File moduleProjectInfoFile = new File( moduleDirectory, "project-info.html" );
+    if ( !moduleProjectInfoFile.exists() || !moduleProjectInfoFile.isFile() )
+    {
+        System.err.println( "Site module project-info.html '" + moduleProjectInfoFile + "' is missing or not a file." );
+        return false;
+    }
+
+    File frModuleProjectInfoFile = new File( frModuleDirectory, "project-info.html" );
+    if ( !frModuleProjectInfoFile.exists() || !frModuleProjectInfoFile.isFile() )
+    {
+        System.err.println( "Site fr module project-info.html '" + frModuleProjectInfoFile + "' is missing or not a file." );
+        return false;
+    }
+
     // STAGING
 
     File topLevelDirectory = new File( basedir, "target/staging" );
