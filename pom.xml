@@ -31,7 +31,7 @@ under the License.
 
   <groupId>com.github.jdimeo</groupId>
   <artifactId>maven-site-plugin</artifactId>
-  <version>4.0.0-M4-DST268</version>
+  <version>4.0.0-M5-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>Apache Maven Site Plugin</name>
@@ -206,23 +206,23 @@ under the License.
     <mavenVersion>3.2.5</mavenVersion>
     <javaVersion>8</javaVersion>
     <!-- for dependencies -->
+    <jettyVersion>9.4.49.v20220914</jettyVersion>
     <doxiaVersion>2.0.0-M4</doxiaVersion>
-    <doxiaSitetoolsVersion>doxia-sitetools-2.0.0-M4</doxiaSitetoolsVersion>
-    <jettyVersion>9.4.48.v20220622</jettyVersion>
+    <doxiaSitetoolsVersion>2.0.0-M4</doxiaSitetoolsVersion>
     <wagonVersion>3.5.2</wagonVersion>
     <slf4jVersion>1.7.36</slf4jVersion>
     <!-- for ITs -->
-    <checkstylePluginVersion>3.1.2</checkstylePluginVersion>
+    <checkstylePluginVersion>3.2.0</checkstylePluginVersion>
     <javadocPluginVersion>3.3.2</javadocPluginVersion>
-    <pmdPluginVersion>3.16.0</pmdPluginVersion>
-    <jxrPluginVersion>3.2.0</jxrPluginVersion>
-    <projectInfoReportsPluginVersion>3.4.0</projectInfoReportsPluginVersion>
-    <surefirePluginVersion>2.22.2</surefirePluginVersion>
+    <pmdPluginVersion>3.19.0</pmdPluginVersion>
+    <jxrPluginVersion>3.3.0</jxrPluginVersion>
+    <projectInfoReportsPluginVersion>3.4.1</projectInfoReportsPluginVersion>
+    <surefirePluginVersion>3.0.0-M7</surefirePluginVersion>
     <mavenPluginPluginVersion>3.6.4</mavenPluginPluginVersion>
-    <mavenReportingImplVersion>4.0.0-M2</mavenReportingImplVersion>
+    <mavenReportingImplVersion>4.0.0-M3</mavenReportingImplVersion>
     <fluidoSkinVersion>1.11.1</fluidoSkinVersion>
     <surefire.version>2.22.2</surefire.version>
-    <project.build.outputTimestamp>2022-07-22T17:08:11Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2022-12-02T20:25:50Z</project.build.outputTimestamp>
 
   </properties>
 
@@ -230,12 +230,12 @@ under the License.
     <dependency>
       <groupId>org.apache.maven.reporting</groupId>
       <artifactId>maven-reporting-api</artifactId>
-      <version>4.0.0-M2</version>
+      <version>4.0.0-M3</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.reporting</groupId>
       <artifactId>maven-reporting-exec</artifactId>
-      <version>2.0.0-M2</version>
+      <version>2.0.0-M3</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.shared</groupId>
@@ -317,7 +317,7 @@ under the License.
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-archiver</artifactId>
-      <version>4.4.0</version>
+      <version>4.6.0</version>
     </dependency>
 
     <dependency>
@@ -334,7 +334,7 @@ under the License.
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-utils</artifactId>
-      <version>3.4.2</version>
+      <version>3.5.0</version>
     </dependency>
 
     <!-- Doxia -->
@@ -343,16 +343,10 @@ under the License.
       <artifactId>doxia-sink-api</artifactId>
       <version>${doxiaVersion}</version>
     </dependency>
-
     <dependency>
       <groupId>org.apache.maven.doxia</groupId>
       <artifactId>doxia-core</artifactId>
       <version>${doxiaVersion}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.doxia</groupId>
-      <artifactId>doxia-module-xhtml</artifactId>
-      <version>2.0.0-M3</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.doxia</groupId>

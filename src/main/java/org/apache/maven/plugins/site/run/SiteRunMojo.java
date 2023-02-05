@@ -25,6 +25,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.plugins.site.render.AbstractSiteRenderingMojo;
 import org.apache.maven.reporting.exec.MavenReportExecution;
 import org.codehaus.plexus.util.IOUtil;
@@ -49,7 +50,7 @@ import java.util.Map;
  * @author <a href="mailto:brett@apache.org">Brett Porter</a>
  *
  */
-@Mojo( name = "run", aggregator = true, requiresReports = true )
+@Mojo( name = "run", requiresDependencyResolution = ResolutionScope.TEST, requiresReports = true )
 public class SiteRunMojo
     extends AbstractSiteRenderingMojo
 {
@@ -122,6 +123,7 @@ public class SiteRunMojo
         WebAppContext webapp = new WebAppContext();
         webapp.setContextPath( "/" );
         webapp.setResourceBase( tempWebappDirectory.getAbsolutePath() );
+        webapp.setAttribute( DoxiaFilter.OUTPUT_DIRECTORY_KEY, tempWebappDirectory );
         webapp.setAttribute( DoxiaFilter.SITE_RENDERER_KEY, siteRenderer );
         webapp.getInitParams().put( "org.mortbay.jetty.servlet.Default.useFileMappedBuffer", "false" );
 
@@ -139,7 +141,6 @@ public class SiteRunMojo
 
         // Default is first in the list
         Locale defaultLocale = localesList.get( 0 );
-        Locale.setDefault( defaultLocale );
 
         try
         {
@@ -166,11 +167,11 @@ public class SiteRunMojo
                 else
                 {
                     i18nGeneratedSiteContext.addSiteDirectory( new File( generatedSiteDirectory,
-                                                                         locale.getLanguage() ) );
+                                                                         locale.toString() ) );
                     doxiaBean = new DoxiaBean( i18nContext, i18nDocuments, i18nGeneratedSiteContext );
                 }
 
-                i18nDoxiaContexts.put( locale.getLanguage(), doxiaBean );
+                i18nDoxiaContexts.put( locale.toString(), doxiaBean );
                 if ( defaultLocale.equals( locale ) )
                 {
                     i18nDoxiaContexts.put( "default", doxiaBean );
@@ -182,7 +183,7 @@ public class SiteRunMojo
                 }
                 else
                 {
-                    siteRenderer.copyResources( i18nContext, new File( tempWebappDirectory, locale.getLanguage() ) );
+                    siteRenderer.copyResources( i18nContext, new File( tempWebappDirectory, locale.toString() ) );
                 }
             }
 

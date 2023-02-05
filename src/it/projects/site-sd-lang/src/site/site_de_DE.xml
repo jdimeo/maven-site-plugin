@@ -1,9 +1,6 @@
-title: Markdown Title Metadata
-author: Author Metadata
-date: Date Metadata
-description: Markdown description metadata, not known from Doxia API as title, author and date are
+<?xml version="1.0" encoding="ISO-8859-15"?>
 
-<!---
+<!--
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -22,14 +19,20 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-Markdown Format works
-=====================
+<project name="${project.name}">
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-fluido-skin</artifactId>
+    <version>${fluidoSkinVersion}</version>
+  </skin>
 
-<!-- MACRO{toc|fromDepth=1|toDepth=2} -->
+  <version position="left" />
 
-Subsection
-----------
-
-This is a subsection.
-
-Content for verify.groovy
+  <body>
+    <menu name="${project.name}">
+      <item name="Einstieg" href="index.html" />
+      <item name="Januar" href="jan.html" />
+    </menu>
+    <menu ref="reports"/>
+  </body>
+</project>
