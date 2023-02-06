@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -46,6 +47,7 @@ import org.apache.maven.reporting.exec.MavenReportExecution;
 import org.apache.maven.shared.utils.logging.MessageBuilder;
 
 import static org.apache.maven.shared.utils.logging.MessageUtils.buffer;
+import com.google.common.collect.Iterators;
 
 /**
  * Generates the site for a single project.
@@ -62,6 +64,8 @@ import static org.apache.maven.shared.utils.logging.MessageUtils.buffer;
 public class SiteMojo
     extends AbstractSiteRenderingMojo
 {
+    private static final int BATCH_SIZE = 100;
+    
     /**
      * Directory where the project sites and report distributions will be generated (as html/css/...).
      */
@@ -273,10 +277,25 @@ public class SiteMojo
                 }
                 mb.strong( entry.getValue() + " " + entry.getKey() );
             }
+            
+            List<List<DocumentRenderer>> batches = new LinkedList<>();
+            Iterators.partition( doxiaDocuments.values().iterator(), BATCH_SIZE ).forEachRemaining( batches::add );
+            
+            mb.format(" in %d batches using %d CPUs", batches.size(), Runtime.getRuntime().availableProcessors());
 
             getLog().info( mb.toString() );
-
-            siteRenderer.render( doxiaDocuments.values(), context, outputDir );
+            
+            batches.stream().parallel().forEach( $ ->
+            {
+                try
+                {
+                    siteRenderer.render( $, context, outputDir );
+			    }
+                catch ( RendererException | IOException e )
+                {
+		            throw new RuntimeException( "Error rendering site", e );
+                }	
+            } );
         }
 
         return nonDoxiaDocuments;

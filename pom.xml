@@ -29,9 +29,8 @@ under the License.
     <relativePath />
   </parent>
 
-  <groupId>com.github.jdimeo</groupId>
   <artifactId>maven-site-plugin</artifactId>
-  <version>4.0.0-M5-SNAPSHOT</version>
+  <version>4.0.0-P5-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>Apache Maven Site Plugin</name>
@@ -379,19 +378,19 @@ under the License.
 
     <!-- Doxia Sitetools -->
     <dependency>
-      <groupId>com.github.apache.maven-doxia-sitetools</groupId>
+      <groupId>org.apache.maven.doxia</groupId>
       <artifactId>doxia-decoration-model</artifactId>
       <version>${doxiaSitetoolsVersion}</version>
     </dependency>
 
     <dependency>
-      <groupId>com.github.apache.maven-doxia-sitetools</groupId>
+      <groupId>org.apache.maven.doxia</groupId>
       <artifactId>doxia-site-renderer</artifactId>
       <version>${doxiaSitetoolsVersion}</version>
     </dependency>
 
     <dependency>
-      <groupId>com.github.apache.maven-doxia-sitetools</groupId>
+      <groupId>org.apache.maven.doxia</groupId>
       <artifactId>doxia-integration-tools</artifactId>
       <version>${doxiaSitetoolsVersion}</version>
     </dependency>
