@@ -31,12 +31,14 @@ import java.util.TreeMap;
 
 import org.apache.maven.doxia.siterenderer.DocumentRenderer;
 import org.apache.maven.doxia.siterenderer.DoxiaDocumentRenderer;
+import org.apache.maven.doxia.siterenderer.Renderer;
 import org.apache.maven.doxia.siterenderer.RendererException;
 import org.apache.maven.doxia.siterenderer.SiteRenderingContext;
 import org.apache.maven.doxia.tools.SiteTool;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -94,6 +96,27 @@ public class SiteMojo
      */
     @Parameter( property = "validate", defaultValue = "false" )
     private boolean validate;
+    
+    
+    // Copies for thread safety
+    @Component
+    protected Renderer siteRenderer2;
+    @Component
+    protected Renderer siteRenderer3;
+    @Component
+    protected Renderer siteRenderer4;
+    @Component
+    protected Renderer siteRenderer5;
+    @Component
+    protected Renderer siteRenderer6;
+    @Component
+    protected Renderer siteRenderer7;
+    @Component
+    protected Renderer siteRenderer8;
+    
+    private volatile int siteRendererIdx;
+    private Renderer[] siteRenderers;
+    private ThreadLocal<Renderer> siteRendererLocal;
 
     /**
      * {@inheritDoc}
@@ -111,6 +134,14 @@ public class SiteMojo
         {
             getLog().debug( "executing Site Mojo" );
         }
+        
+        siteRenderers = new Renderer[] {
+        	siteRenderer, siteRenderer2, siteRenderer3, siteRenderer4, siteRenderer5, siteRenderer6, siteRenderer7, siteRenderer8  	
+        };
+        siteRendererLocal = ThreadLocal.withInitial(() -> {
+        	// Warning: may return the same renderer if there are more threads than renderers
+        	return siteRenderers[siteRendererIdx++ % siteRenderers.length];
+        });
 
         checkInputEncoding();
 
@@ -289,7 +320,7 @@ public class SiteMojo
             {
                 try
                 {
-                    siteRenderer.render( $, context, outputDir );
+                    siteRendererLocal.get().render( $, context, outputDir );
 			    }
                 catch ( RendererException | IOException e )
                 {
