@@ -1,5 +1,7 @@
 package org.apache.maven.plugins.site.render;
 
+import static org.apache.maven.shared.utils.logging.MessageUtils.buffer;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -29,16 +31,17 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.maven.doxia.Doxia;
+import org.apache.maven.doxia.siterenderer.DefaultSiteRenderer;
 import org.apache.maven.doxia.siterenderer.DocumentRenderer;
 import org.apache.maven.doxia.siterenderer.DoxiaDocumentRenderer;
-import org.apache.maven.doxia.siterenderer.Renderer;
 import org.apache.maven.doxia.siterenderer.RendererException;
 import org.apache.maven.doxia.siterenderer.SiteRenderingContext;
 import org.apache.maven.doxia.tools.SiteTool;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -48,7 +51,6 @@ import org.apache.maven.reporting.MavenReportException;
 import org.apache.maven.reporting.exec.MavenReportExecution;
 import org.apache.maven.shared.utils.logging.MessageBuilder;
 
-import static org.apache.maven.shared.utils.logging.MessageUtils.buffer;
 import com.google.common.collect.Iterators;
 
 /**
@@ -97,27 +99,6 @@ public class SiteMojo
     @Parameter( property = "validate", defaultValue = "false" )
     private boolean validate;
     
-    
-    // Copies for thread safety
-    @Component
-    protected Renderer siteRenderer2;
-    @Component
-    protected Renderer siteRenderer3;
-    @Component
-    protected Renderer siteRenderer4;
-    @Component
-    protected Renderer siteRenderer5;
-    @Component
-    protected Renderer siteRenderer6;
-    @Component
-    protected Renderer siteRenderer7;
-    @Component
-    protected Renderer siteRenderer8;
-    
-    private volatile int siteRendererIdx;
-    private Renderer[] siteRenderers;
-    private ThreadLocal<Renderer> siteRendererLocal;
-
     /**
      * {@inheritDoc}
      */
@@ -135,13 +116,14 @@ public class SiteMojo
             getLog().debug( "executing Site Mojo" );
         }
         
-        siteRenderers = new Renderer[] {
-        	siteRenderer, siteRenderer2, siteRenderer3, siteRenderer4, siteRenderer5, siteRenderer6, siteRenderer7, siteRenderer8  	
-        };
-        siteRendererLocal = ThreadLocal.withInitial(() -> {
-        	// Warning: may return the same renderer if there are more threads than renderers
-        	return siteRenderers[siteRendererIdx++ % siteRenderers.length];
-        });
+        DefaultSiteRenderer dsr = (DefaultSiteRenderer) siteRenderer;
+        
+        try {
+        	Doxia defDoxia = (Doxia) FieldUtils.readField(siteRenderer, "doxia", true);
+			FieldUtils.writeField(siteRenderer, "doxia", new ThreadSafeDoxia(defDoxia), true);
+		} catch (IllegalAccessException e1) {
+			getLog().info("Can't replace doxia with thread safe implementation: " + e1.getMessage());
+		}
 
         checkInputEncoding();
 
@@ -320,7 +302,7 @@ public class SiteMojo
             {
                 try
                 {
-                    siteRendererLocal.get().render( $, context, outputDir );
+                    siteRenderer.render( $, context, outputDir );
 			    }
                 catch ( RendererException | IOException e )
                 {
