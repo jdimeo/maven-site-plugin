@@ -22,6 +22,7 @@ import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.maven.doxia.DefaultDoxia;
 import org.apache.maven.doxia.Doxia;
 import org.apache.maven.doxia.module.markdown.MarkdownParser;
@@ -49,7 +50,13 @@ public class ThreadSafeDoxia extends DefaultDoxia {
                     return new Xhtml5Parser();
                 }
                 if ("markdown".equals($)) {
-                    return new MarkdownParser();
+                    MarkdownParser ret = new MarkdownParser();
+                    try {
+                        FieldUtils.writeField(ret, "parser", new MarkdownParser.MarkdownHtmlParser(), true);
+                    } catch (IllegalAccessException e) {
+                        // will throw NPE
+                    }
+                    return ret;
                 }
                 // Else, fall back to the default which are presumably thread
                 // safe instances
