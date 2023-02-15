@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.apache.maven.doxia.DefaultDoxia;
 import org.apache.maven.doxia.Doxia;
+import org.apache.maven.doxia.module.markdown.MarkdownParser;
 import org.apache.maven.doxia.module.xhtml5.Xhtml5Parser;
 import org.apache.maven.doxia.parser.ParseException;
 import org.apache.maven.doxia.parser.Parser;
@@ -46,6 +47,9 @@ public class ThreadSafeDoxia extends DefaultDoxia {
             return map.computeIfAbsent(parserId, $ -> {
                 if ("xhtml".equals($)) {
                     return new Xhtml5Parser();
+                }
+                if ("markdown".equals($)) {
+                    return new MarkdownParser();
                 }
                 // Else, fall back to the default which are presumably thread
                 // safe instances
