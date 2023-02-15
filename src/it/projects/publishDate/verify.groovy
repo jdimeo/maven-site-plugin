@@ -1,3 +1,4 @@
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,26 +17,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.maven.plugins.site.deploy;
 
-import java.io.File;
-
-import org.apache.maven.plugin.AbstractMojo;
-
-/**
- * @author Olivier Lamy
- * @since 3.0-beta-2
- *
- */
-public class SiteDeployWebDavTest extends AbstractSiteDeployWebDavTest {
-
-    @Override
-    String getMojoName() {
-        return "deploy";
-    }
-
-    @Override
-    AbstractMojo getMojo(File pomXmlFile) throws Exception {
-        return (SiteDeployMojo) lookupMojo(getMojoName(), pomXmlFile);
-    }
-}
+sitedir = new File( basedir, 'target/site' );
+index = new File( sitedir, 'index.html' );
+assert index.exists();
+assert index.getText().contains( '<li id="publishDate">Last Published: 2000-01-01' );
