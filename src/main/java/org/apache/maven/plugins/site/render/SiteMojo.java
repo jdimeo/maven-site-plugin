@@ -28,6 +28,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.google.common.collect.Iterators;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.maven.doxia.Doxia;
 import org.apache.maven.doxia.siterenderer.DefaultSiteRenderer;
@@ -48,7 +49,7 @@ import org.apache.maven.reporting.MavenReportException;
 import org.apache.maven.reporting.exec.MavenReportExecution;
 import org.apache.maven.shared.utils.logging.MessageBuilder;
 
-import com.google.common.collect.Iterators;
+import static org.apache.maven.shared.utils.logging.MessageUtils.buffer;
 
 /**
  * Generates the site for a single project.
@@ -92,7 +93,7 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
      */
     @Parameter(property = "validate", defaultValue = "false")
     private boolean validate;
-    
+
     /**
      * {@inheritDoc}
      */
@@ -105,15 +106,15 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
         if (getLog().isDebugEnabled()) {
             getLog().debug("executing Site Mojo");
         }
-        
+
         DefaultSiteRenderer dsr = (DefaultSiteRenderer) siteRenderer;
-        
+
         try {
-        	Doxia defDoxia = (Doxia) FieldUtils.readField(siteRenderer, "doxia", true);
-			FieldUtils.writeField(siteRenderer, "doxia", new ThreadSafeDoxia(defDoxia), true);
-		} catch (IllegalAccessException e1) {
-			getLog().info("Can't replace doxia with thread safe implementation: " + e1.getMessage());
-		}
+            Doxia defDoxia = (Doxia) FieldUtils.readField(siteRenderer, "doxia", true);
+            FieldUtils.writeField(siteRenderer, "doxia", new ThreadSafeDoxia(defDoxia), true);
+        } catch (IllegalAccessException e1) {
+            getLog().info("Can't replace doxia with thread safe implementation: " + e1.getMessage());
+        }
 
         checkInputEncoding();
 
@@ -251,25 +252,23 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
                 }
                 mb.strong(entry.getValue() + " " + entry.getKey());
             }
-            
-            List<List<DocumentRenderer>> batches = new LinkedList<>();
-            Iterators.partition( doxiaDocuments.values().iterator(), BATCH_SIZE ).forEachRemaining( batches::add );
-            
-            mb.format(" in %d batches using %d CPUs", batches.size(), Runtime.getRuntime().availableProcessors());
 
-            getLog().info( mb.toString() );
-            
-            batches.stream().parallel().forEach( $ ->
-            {
-                try
-                {
-                    siteRenderer.render( $, context, outputDir );
-			    }
-                catch ( RendererException | IOException e )
-                {
-		            throw new RuntimeException( "Error rendering site", e );
-                }	
-            } );
+            List<List<DocumentRenderer>> batches = new LinkedList<>();
+            Iterators.partition(doxiaDocuments.values().iterator(), BATCH_SIZE).forEachRemaining(batches::add);
+
+            mb.format(
+                    " in %d batches using %d CPUs",
+                    batches.size(), Runtime.getRuntime().availableProcessors());
+
+            getLog().info(mb.toString());
+
+            batches.stream().parallel().forEach($ -> {
+                try {
+                    siteRenderer.render($, context, outputDir);
+                } catch (RendererException | IOException e) {
+                    throw new RuntimeException("Error rendering site", e);
+                }
+            });
         }
 
         return nonDoxiaDocuments;

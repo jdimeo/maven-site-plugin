@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.maven.plugins.site.render;
 
 import java.io.Reader;
@@ -13,43 +31,43 @@ import org.apache.maven.doxia.parser.manager.ParserNotFoundException;
 import org.apache.maven.doxia.sink.Sink;
 
 public class ThreadSafeDoxia extends DefaultDoxia {
-	private ThreadLocal<Map<String, Parser>> parsers = ThreadLocal.withInitial(HashMap::new);
-	
-	private Doxia delegate;
-	
-	public ThreadSafeDoxia(Doxia delegate) {
-		this.delegate = delegate;
-	}
-	
-	@Override
-	public Parser getParser(String parserId) throws ParserNotFoundException {
-		Map<String, Parser> map = parsers.get();
-		try {
-			return map.computeIfAbsent(parserId, $ -> {
-				if ("xhtml".equals($)) {
-					return new Xhtml5Parser();
-				}
-				// Else, fall back to the default which are presumably thread
-				// safe instances
-				try {
-					return delegate.getParser(parserId);
-				} catch (ParserNotFoundException e) {
-					throw new RuntimeException(e);
-				}
-			});
-		} catch (RuntimeException e) {
-			throw new ParserNotFoundException(e);
-		}
-	}
-	
-	@Override
-	public void parse(Reader source, String parserId, Sink sink) throws ParserNotFoundException, ParseException {
-		getParser(parserId).parse(source, sink);
-	}
-	
-	@Override
-	public void parse(Reader source, String parserId, Sink sink, String reference)
-			throws ParserNotFoundException, ParseException {
-		getParser(parserId).parse(source, sink, reference);
-	}
+    private ThreadLocal<Map<String, Parser>> parsers = ThreadLocal.withInitial(HashMap::new);
+
+    private Doxia delegate;
+
+    public ThreadSafeDoxia(Doxia delegate) {
+        this.delegate = delegate;
+    }
+
+    @Override
+    public Parser getParser(String parserId) throws ParserNotFoundException {
+        Map<String, Parser> map = parsers.get();
+        try {
+            return map.computeIfAbsent(parserId, $ -> {
+                if ("xhtml".equals($)) {
+                    return new Xhtml5Parser();
+                }
+                // Else, fall back to the default which are presumably thread
+                // safe instances
+                try {
+                    return delegate.getParser(parserId);
+                } catch (ParserNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } catch (RuntimeException e) {
+            throw new ParserNotFoundException(e);
+        }
+    }
+
+    @Override
+    public void parse(Reader source, String parserId, Sink sink) throws ParserNotFoundException, ParseException {
+        getParser(parserId).parse(source, sink);
+    }
+
+    @Override
+    public void parse(Reader source, String parserId, Sink sink, String reference)
+            throws ParserNotFoundException, ParseException {
+        getParser(parserId).parse(source, sink, reference);
+    }
 }
