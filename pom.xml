@@ -28,7 +28,7 @@ under the License.
   </parent>
 
   <artifactId>maven-site-plugin</artifactId>
-  <version>4.0.0-P7</version>
+  <version>4.0.0-P13</version>
   <packaging>maven-plugin</packaging>
 
   <name>Apache Maven Site Plugin</name>
@@ -212,7 +212,7 @@ under the License.
     <mavenPluginPluginVersion>3.10.2</mavenPluginPluginVersion>
     <mavenReportingImplVersion>4.0.0-M13</mavenReportingImplVersion>
     <testingFluidoSkinVersion>2.0.0-M8</testingFluidoSkinVersion>
-    <project.build.outputTimestamp>2023-12-14T15:35:29Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2024-02-10T14:46:02Z</project.build.outputTimestamp>
 
   </properties>
 
@@ -508,6 +508,12 @@ under the License.
       <scope>test</scope>
     </dependency>
   </dependencies>
+  <repositories>
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+    </repository>
+  </repositories>
 
   <build>
     <pluginManagement>
@@ -543,12 +549,6 @@ under the License.
       </plugins>
     </pluginManagement>
   </build>
-  <repositories>
-    <repository>
-      <id>jitpack.io</id>
-      <url>https://jitpack.io</url>
-    </repository>
-  </repositories>
 
   <profiles>
     <profile>
