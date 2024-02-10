@@ -18,30 +18,34 @@
  */
 package org.apache.maven.plugins.site.render;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.maven.doxia.sink.Sink;
-import org.apache.maven.doxia.siterenderer.DocumentRenderer;
-import org.apache.maven.doxia.siterenderer.Renderer;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.doxia.siterenderer.DocumentRenderingContext;
 import org.apache.maven.doxia.siterenderer.RendererException;
-import org.apache.maven.doxia.siterenderer.RenderingContext;
+import org.apache.maven.doxia.siterenderer.SiteRenderer;
 import org.apache.maven.doxia.siterenderer.SiteRenderingContext;
 import org.apache.maven.doxia.siterenderer.sink.SiteRendererSink;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.reporting.MavenReport;
 import org.codehaus.plexus.i18n.I18N;
+
+import static org.apache.maven.shared.utils.logging.MessageUtils.buffer;
 
 /**
  * Renders a Maven report.
  *
  * @author <a href="mailto:brett@apache.org">Brett Porter</a>
  */
-public class CategorySummaryDocumentRenderer implements DocumentRenderer {
-    private RenderingContext renderingContext;
+public class CategorySummaryDocumentRenderer implements SitePluginReportDocumentRenderer {
+    private DocumentRenderingContext docRenderingContext;
+
+    private final String reportMojoInfo;
 
     private String title;
 
@@ -56,24 +60,20 @@ public class CategorySummaryDocumentRenderer implements DocumentRenderer {
     private final Log log;
 
     public CategorySummaryDocumentRenderer(
-            RenderingContext renderingContext,
-            String title,
-            String desc1,
-            String desc2,
-            I18N i18n,
-            List<MavenReport> categoryReports) {
-        this(renderingContext, title, desc1, desc2, i18n, categoryReports, null);
-    }
-
-    public CategorySummaryDocumentRenderer(
-            RenderingContext renderingContext,
+            MojoExecution mojoExecution,
+            DocumentRenderingContext docRenderingContext,
             String title,
             String desc1,
             String desc2,
             I18N i18n,
             List<MavenReport> categoryReports,
             Log log) {
-        this.renderingContext = renderingContext;
+        this.docRenderingContext = docRenderingContext;
+        this.reportMojoInfo = mojoExecution.getPlugin().getArtifactId()
+                + ':'
+                + mojoExecution.getPlugin().getVersion()
+                + ':'
+                + mojoExecution.getGoal();
         this.title = title;
         this.desc1 = desc1;
         this.desc2 = desc2;
@@ -82,9 +82,14 @@ public class CategorySummaryDocumentRenderer implements DocumentRenderer {
         this.log = log;
     }
 
-    public void renderDocument(Writer writer, Renderer renderer, SiteRenderingContext siteRenderingContext)
-            throws RendererException, FileNotFoundException {
-        SiteRendererSink sink = new SiteRendererSink(renderingContext);
+    public void renderDocument(Writer writer, SiteRenderer siteRenderer, SiteRenderingContext siteRenderingContext)
+            throws RendererException, IOException {
+        String msg = "Generating \"" + buffer().strong(title) + "\" report";
+        // CHECKSTYLE_OFF: MagicNumber
+        log.info((StringUtils.rightPad(msg, 40) + buffer().strong(" --- ").mojo(reportMojoInfo)));
+        // CHECKSTYLE_ON: MagicNumber
+
+        SiteRendererSink sink = new SiteRendererSink(docRenderingContext);
 
         sink.head();
 
@@ -105,7 +110,7 @@ public class CategorySummaryDocumentRenderer implements DocumentRenderer {
 
         sink.paragraph();
         sink.text(desc1 + " ");
-        sink.link("http://maven.apache.org");
+        sink.link("https://maven.apache.org");
         sink.text("Maven");
         sink.link_();
         sink.text(" " + desc2);
@@ -119,7 +124,7 @@ public class CategorySummaryDocumentRenderer implements DocumentRenderer {
 
         sink.table();
 
-        sink.tableRows(new int[] {Sink.JUSTIFY_LEFT, Sink.JUSTIFY_LEFT}, false);
+        sink.tableRows();
 
         String name = i18n.getString("site-plugin", locale, "report.category.column.document");
         String description = i18n.getString("site-plugin", locale, "report.category.column.description");
@@ -169,15 +174,15 @@ public class CategorySummaryDocumentRenderer implements DocumentRenderer {
 
         sink.close();
 
-        renderer.mergeDocumentIntoSite(writer, sink, siteRenderingContext);
+        siteRenderer.mergeDocumentIntoSite(writer, sink, siteRenderingContext);
     }
 
     public String getOutputName() {
-        return renderingContext.getOutputName();
+        return docRenderingContext.getOutputName();
     }
 
-    public RenderingContext getRenderingContext() {
-        return renderingContext;
+    public DocumentRenderingContext getRenderingContext() {
+        return docRenderingContext;
     }
 
     public boolean isOverwrite() {
@@ -186,5 +191,10 @@ public class CategorySummaryDocumentRenderer implements DocumentRenderer {
 
     public boolean isExternalReport() {
         return false;
+    }
+
+    @Override
+    public String getReportMojoInfo() {
+        return reportMojoInfo;
     }
 }

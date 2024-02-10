@@ -30,6 +30,7 @@ import java.util.Map;
 
 import org.apache.maven.doxia.siterenderer.DocumentRenderer;
 import org.apache.maven.doxia.siterenderer.SiteRenderingContext;
+import org.apache.maven.doxia.tools.SiteTool;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -120,18 +121,9 @@ public class SiteRunMojo extends AbstractSiteRenderingMojo {
 
         // For external reports
         project.getReporting().setOutputDirectory(tempWebappDirectory.getAbsolutePath());
-        for (MavenReportExecution mavenReportExecution : getReports()) {
-            mavenReportExecution.getMavenReport().setReportOutputDirectory(tempWebappDirectory);
-        }
-
-        List<MavenReportExecution> reports =
-                getReports(); // TODO: is it sane to call getReports() method a second time?
 
         List<Locale> localesList = getLocales();
         webapp.setAttribute(DoxiaFilter.LOCALES_LIST_KEY, localesList);
-
-        // Default is first in the list
-        Locale defaultLocale = localesList.get(0);
 
         try {
             Map<String, DoxiaBean> i18nDoxiaContexts = new HashMap<>();
@@ -146,25 +138,27 @@ public class SiteRunMojo extends AbstractSiteRenderingMojo {
                 i18nGeneratedSiteContext.setOutputEncoding(getOutputEncoding());
                 i18nGeneratedSiteContext.getSiteDirectories().clear();
 
-                Map<String, DocumentRenderer> i18nDocuments = locateDocuments(i18nContext, reports, locale);
-                DoxiaBean doxiaBean;
-                if (defaultLocale.equals(locale)) {
-                    i18nGeneratedSiteContext.addSiteDirectory(generatedSiteDirectory);
-                    doxiaBean = new DoxiaBean(i18nContext, i18nDocuments, i18nGeneratedSiteContext);
-                } else {
-                    i18nGeneratedSiteContext.addSiteDirectory(new File(generatedSiteDirectory, locale.toString()));
-                    doxiaBean = new DoxiaBean(i18nContext, i18nDocuments, i18nGeneratedSiteContext);
-                }
+                File outputDirectory = getOutputDirectory(locale);
+                List<MavenReportExecution> reports = getReports(outputDirectory);
 
-                i18nDoxiaContexts.put(locale.toString(), doxiaBean);
-                if (defaultLocale.equals(locale)) {
+                Map<String, DocumentRenderer> i18nDocuments = locateDocuments(i18nContext, reports, locale);
+                if (!locale.equals(SiteTool.DEFAULT_LOCALE)) {
+                    i18nGeneratedSiteContext.addSiteDirectory(new File(generatedSiteDirectory, locale.toString()));
+                } else {
+                    i18nGeneratedSiteContext.addSiteDirectory(generatedSiteDirectory);
+                }
+                DoxiaBean doxiaBean = new DoxiaBean(i18nContext, i18nDocuments, i18nGeneratedSiteContext);
+
+                if (!locale.equals(SiteTool.DEFAULT_LOCALE)) {
+                    i18nDoxiaContexts.put(locale.toString(), doxiaBean);
+                } else {
                     i18nDoxiaContexts.put("default", doxiaBean);
                 }
 
-                if (defaultLocale.equals(locale)) {
-                    siteRenderer.copyResources(i18nContext, tempWebappDirectory);
-                } else {
+                if (!locale.equals(SiteTool.DEFAULT_LOCALE)) {
                     siteRenderer.copyResources(i18nContext, new File(tempWebappDirectory, locale.toString()));
+                } else {
+                    siteRenderer.copyResources(i18nContext, tempWebappDirectory);
                 }
             }
 
@@ -173,6 +167,22 @@ public class SiteRunMojo extends AbstractSiteRenderingMojo {
             throw new MojoExecutionException("Unable to set up webapp", e);
         }
         return webapp;
+    }
+
+    private File getOutputDirectory(Locale locale) {
+        File file;
+        if (!locale.equals(SiteTool.DEFAULT_LOCALE)) {
+            file = new File(tempWebappDirectory, locale.toString());
+        } else {
+            file = tempWebappDirectory;
+        }
+
+        // Safety
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+
+        return file;
     }
 
     public void setTempWebappDirectory(File tempWebappDirectory) {

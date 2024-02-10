@@ -22,35 +22,47 @@ import java.io.File;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.doxia.site.decoration.DecorationModel;
-import org.apache.maven.doxia.site.decoration.inheritance.DecorationModelInheritanceAssembler;
+import org.apache.maven.doxia.site.SiteModel;
+import org.apache.maven.doxia.site.inheritance.SiteModelInheritanceAssembler;
+import org.apache.maven.doxia.tools.SiteTool;
 import org.apache.maven.doxia.tools.SiteToolException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.site.AbstractSiteMojo;
+import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.repository.RemoteRepository;
 
 /**
- * Abstract class to compute effective site decoration model for site descriptors.
+ * Abstract class to compute effective site model for site descriptors.
  *
  * @since 3.5
  */
 public abstract class AbstractSiteDescriptorMojo extends AbstractSiteMojo {
     /**
-     * The component for assembling site decoration model inheritance.
+     * The component for assembling site model inheritance.
      */
     @Component
-    private DecorationModelInheritanceAssembler assembler;
+    private SiteModelInheritanceAssembler assembler;
 
     /**
-     * Remote repositories used for the project.
+     * The reactor projects.
+     */
+    @Parameter(defaultValue = "${reactorProjects}", required = true, readonly = true)
+    protected List<MavenProject> reactorProjects;
+
+    @Parameter(defaultValue = "${repositorySystemSession}", required = true, readonly = true)
+    protected RepositorySystemSession repoSession;
+
+    /**
+     * Remote project repositories used for the project.
      *
      * todo this is used for site descriptor resolution - it should relate to the actual project but for some reason
      *       they are not always filled in
      */
-    @Parameter(defaultValue = "${project.remoteArtifactRepositories}", readonly = true)
-    protected List<ArtifactRepository> repositories;
+    @Parameter(defaultValue = "${project.remoteProjectRepositories}", readonly = true)
+    protected List<RemoteRepository> remoteProjectRepositories;
 
     /**
      * Directory containing the <code>site.xml</code> file and the source for hand written docs (one directory
@@ -71,37 +83,32 @@ public abstract class AbstractSiteDescriptorMojo extends AbstractSiteMojo {
      *
      * @since 2.3
      */
-    @Parameter(property = "relativizeDecorationLinks", defaultValue = "true")
-    private boolean relativizeDecorationLinks;
+    @Parameter(property = "relativizeSiteLinks", defaultValue = "true")
+    private boolean relativizeSiteLinks;
 
-    protected DecorationModel prepareDecorationModel(Locale locale) throws MojoExecutionException {
-        DecorationModel decorationModel;
+    protected SiteModel prepareSiteModel(Locale locale) throws MojoExecutionException {
+        SiteModel siteModel;
         try {
-            decorationModel = siteTool.getDecorationModel(
-                    siteDirectory, locale, project, reactorProjects, localRepository, repositories);
+            siteModel = siteTool.getSiteModel(
+                    siteDirectory, locale, project, reactorProjects, repoSession, remoteProjectRepositories);
         } catch (SiteToolException e) {
-            throw new MojoExecutionException("SiteToolException: " + e.getMessage(), e);
+            throw new MojoExecutionException("Failed to obtain site model", e);
         }
 
-        if (relativizeDecorationLinks) {
+        if (relativizeSiteLinks) {
             final String url = project.getUrl();
 
             if (url == null) {
-                getLog().warn("No project URL defined - decoration links will not be relativized!");
+                getLog().warn("No project URL defined - site links will not be relativized!");
             } else {
-                List<Locale> localesList = getLocales();
-
-                // Default is first in the list
-                Locale defaultLocale = localesList.get(0);
-
                 // MSITE-658
-                final String localeUrl = locale.equals(defaultLocale) ? url : append(url, locale.toString());
+                final String localeUrl = !locale.equals(SiteTool.DEFAULT_LOCALE) ? append(url, locale.toString()) : url;
 
-                getLog().info("Relativizing decoration links with respect to localized project URL: " + localeUrl);
-                assembler.resolvePaths(decorationModel, localeUrl);
+                getLog().info("Relativizing site links with respect to localized project URL: " + localeUrl);
+                assembler.resolvePaths(siteModel, localeUrl);
             }
         }
-        return decorationModel;
+        return siteModel;
     }
 
     private String append(String url, String path) {

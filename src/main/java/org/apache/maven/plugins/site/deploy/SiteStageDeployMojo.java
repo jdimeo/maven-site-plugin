@@ -29,7 +29,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.utils.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 /**
@@ -89,13 +88,13 @@ public class SiteStageDeployMojo extends AbstractStagingMojo {
      */
     @Override
     protected String determineTopDistributionManagementSiteUrl() throws MojoExecutionException {
-        if (StringUtils.isNotEmpty(topSiteURL)) {
+        if (topSiteURL != null && !topSiteURL.isEmpty()) {
             getLog().debug("stage-deploy top distributionManagement.site.url configured with topSiteURL parameter: "
                     + topSiteURL);
             return topSiteURL;
         }
 
-        if (StringUtils.isNotEmpty(stagingSiteURL)) {
+        if (stagingSiteURL != null && !stagingSiteURL.isEmpty()) {
             // We need to calculate the first project that supplied same stagingSiteURL
             MavenProject topProject = getTopMostParentWithSameStagingSiteURL();
             String url = getSite(topProject).getUrl();
@@ -138,8 +137,7 @@ public class SiteStageDeployMojo extends AbstractStagingMojo {
 
         // CHECKSTYLE_OFF: InnerAssignment
         while ( // MSITE-585, MNG-1943
-        (parent = siteTool.getParentProject(current, reactorProjects, localRepository)) != null
-                && stagingSiteURL.equals(getStagingSiteURL(parent))) {
+        (parent = current.getParent()) != null && stagingSiteURL.equals(getStagingSiteURL(parent))) {
             current = parent;
         }
         // CHECKSTYLE_ON: InnerAssignment

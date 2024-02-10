@@ -37,10 +37,12 @@ import java.util.Map;
 
 import org.apache.maven.doxia.siterenderer.DocumentRenderer;
 import org.apache.maven.doxia.siterenderer.DoxiaDocumentRenderer;
-import org.apache.maven.doxia.siterenderer.Renderer;
 import org.apache.maven.doxia.siterenderer.RendererException;
+import org.apache.maven.doxia.siterenderer.SiteRenderer;
 import org.apache.maven.doxia.siterenderer.SiteRenderingContext;
+import org.apache.maven.doxia.tools.SiteTool;
 import org.apache.maven.plugins.site.render.ReportDocumentRenderer;
+import org.apache.maven.plugins.site.render.SitePluginReportDocumentRenderer;
 import org.eclipse.jetty.http.MimeTypes;
 
 import static org.apache.maven.shared.utils.logging.MessageUtils.buffer;
@@ -63,7 +65,7 @@ public class DoxiaFilter implements Filter {
 
     private File outputDirectory;
 
-    private Renderer siteRenderer;
+    private SiteRenderer siteRenderer;
 
     private Map<String, DoxiaBean> i18nDoxiaContexts;
 
@@ -77,7 +79,7 @@ public class DoxiaFilter implements Filter {
 
         outputDirectory = (File) servletContext.getAttribute(OUTPUT_DIRECTORY_KEY);
 
-        siteRenderer = (Renderer) servletContext.getAttribute(SITE_RENDERER_KEY);
+        siteRenderer = (SiteRenderer) servletContext.getAttribute(SITE_RENDERER_KEY);
 
         i18nDoxiaContexts = (Map<String, DoxiaBean>) servletContext.getAttribute(I18N_DOXIA_CONTEXTS_KEY);
 
@@ -108,7 +110,7 @@ public class DoxiaFilter implements Filter {
         Map<String, DocumentRenderer> documents;
         SiteRenderingContext generatedSiteContext;
 
-        String localeWanted = null;
+        String localeWanted = "";
         for (Locale locale : localesList) {
             if (path.startsWith(locale + "/")) {
                 localeWanted = locale.toString();
@@ -116,40 +118,38 @@ public class DoxiaFilter implements Filter {
             }
         }
 
-        if (localeWanted == null) {
-            DoxiaBean defaultDoxiaBean = i18nDoxiaContexts.get("default");
-            if (defaultDoxiaBean == null) {
-                throw new ServletException("No doxia bean found for the default locale");
+        DoxiaBean doxiaBean;
+        if (!localeWanted.equals(SiteTool.DEFAULT_LOCALE.toString())) {
+            doxiaBean = i18nDoxiaContexts.get(localeWanted);
+            if (doxiaBean == null) {
+                throw new ServletException("No Doxia bean found for locale '" + localeWanted + "'");
             }
-            context = defaultDoxiaBean.getContext();
-            documents = defaultDoxiaBean.getDocuments();
-            generatedSiteContext = defaultDoxiaBean.getGeneratedSiteContext();
         } else {
-            DoxiaBean i18nDoxiaBean = i18nDoxiaContexts.get(localeWanted);
-            if (i18nDoxiaBean == null) {
-                throw new ServletException("No doxia bean found for locale '" + localeWanted + "'");
+            doxiaBean = i18nDoxiaContexts.get("default");
+            if (doxiaBean == null) {
+                throw new ServletException("No Doxia bean found for the default locale");
             }
-            context = i18nDoxiaBean.getContext();
-            documents = i18nDoxiaBean.getDocuments();
-            generatedSiteContext = i18nDoxiaBean.getGeneratedSiteContext();
         }
+        context = doxiaBean.getContext();
+        documents = doxiaBean.getDocuments();
+        generatedSiteContext = doxiaBean.getGeneratedSiteContext();
 
         // ----------------------------------------------------------------------
         // Handle report and documents
         // ----------------------------------------------------------------------
         if (documents.containsKey(path)) {
             try {
-                DocumentRenderer renderer = documents.get(path);
-                logDocumentRenderer(path, renderer);
-                String outputName = renderer.getOutputName();
+                DocumentRenderer docRenderer = documents.get(path);
+                logDocumentRenderer(path, localeWanted, docRenderer);
+                String outputName = docRenderer.getOutputName();
                 String contentType = MimeTypes.getDefaultMimeByExtension(outputName);
                 if (contentType != null) {
                     servletResponse.setContentType(contentType);
                 }
-                renderer.renderDocument(servletResponse.getWriter(), siteRenderer, context);
+                docRenderer.renderDocument(servletResponse.getWriter(), siteRenderer, context);
 
-                if (renderer instanceof ReportDocumentRenderer) {
-                    ReportDocumentRenderer reportDocumentRenderer = (ReportDocumentRenderer) renderer;
+                if (docRenderer instanceof ReportDocumentRenderer) {
+                    ReportDocumentRenderer reportDocumentRenderer = (ReportDocumentRenderer) docRenderer;
                     if (reportDocumentRenderer.isExternalReport()) {
                         Path externalReportFile = outputDirectory.toPath().resolve(outputName);
                         servletResponse.reset();
@@ -170,14 +170,14 @@ public class DoxiaFilter implements Filter {
                         siteRenderer.locateDocumentFiles(generatedSiteContext, false);
 
                 if (locateDocuments.containsKey(path)) {
-                    DocumentRenderer renderer = locateDocuments.get(path);
-                    logDocumentRenderer(path, renderer);
-                    String outputName = renderer.getOutputName();
+                    DocumentRenderer docRenderer = locateDocuments.get(path);
+                    logDocumentRenderer(path, localeWanted, docRenderer);
+                    String outputName = docRenderer.getOutputName();
                     String contentType = MimeTypes.getDefaultMimeByExtension(outputName);
                     if (contentType != null) {
                         servletResponse.setContentType(contentType);
                     }
-                    renderer.renderDocument(servletResponse.getWriter(), siteRenderer, generatedSiteContext);
+                    docRenderer.renderDocument(servletResponse.getWriter(), siteRenderer, generatedSiteContext);
 
                     return;
                 }
@@ -189,18 +189,28 @@ public class DoxiaFilter implements Filter {
         filterChain.doFilter(servletRequest, servletResponse);
     }
 
-    private void logDocumentRenderer(String path, DocumentRenderer renderer) {
+    private void logDocumentRenderer(String path, String locale, DocumentRenderer docRenderer) {
         String source;
-        if (renderer instanceof DoxiaDocumentRenderer) {
-            DoxiaDocumentRenderer doxiaDocumentRenderer = (DoxiaDocumentRenderer) renderer;
-            source = doxiaDocumentRenderer.getRenderingContext().getInputName();
-        } else if (renderer instanceof ReportDocumentRenderer) {
-            ReportDocumentRenderer reportDocumentRenderer = (ReportDocumentRenderer) renderer;
-            source = reportDocumentRenderer.getReportMojoInfo();
+        if (docRenderer instanceof DoxiaDocumentRenderer) {
+            source = docRenderer.getRenderingContext().getDoxiaSourcePath();
+        } else if (docRenderer instanceof ReportDocumentRenderer) {
+            source = ((ReportDocumentRenderer) docRenderer).getReportMojoInfo();
+            if (source == null) {
+                source = "(unknown)";
+            }
+        } else if (docRenderer instanceof SitePluginReportDocumentRenderer) {
+            source = ((SitePluginReportDocumentRenderer) docRenderer).getReportMojoInfo();
         } else {
-            source = renderer.getClass().getName();
+            source = docRenderer.getRenderingContext().getGenerator() != null
+                    ? docRenderer.getRenderingContext().getGenerator()
+                    : docRenderer.getClass().getName();
         }
-        servletContext.log(path + " -> " + buffer().strong(source));
+        String localizedPath = !locale.equals(SiteTool.DEFAULT_LOCALE.toString()) ? locale + "/" + path : path;
+        String localizedSource = source
+                + (!locale.equals(SiteTool.DEFAULT_LOCALE.toString())
+                        ? " (locale '" + locale + "')"
+                        : " (default locale)");
+        servletContext.log(localizedPath + " -> " + buffer().strong(localizedSource));
     }
 
     /**

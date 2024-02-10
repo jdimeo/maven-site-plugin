@@ -19,7 +19,9 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-<project name="${project.name}">
+<site xmlns="http://maven.apache.org/SITE/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SITE/2.0.0 https://maven.apache.org/xsd/site-2.0.0.xsd"
+  name="${project.name}">
   <skin>
     <groupId>org.apache.maven.skins</groupId>
     <artifactId>maven-fluido-skin</artifactId>
@@ -33,6 +35,7 @@ under the License.
       <item name="Accueil" href="index.html" />
       <item name="Contacts" href="contact.html" />
       <item name="Retour" href="../index.html" />
+      <item name="Sitemap" href="sitemap.html" />
     </menu>
     <menu name="Doc">
       <item name="specs" href="doc.html" />
@@ -41,4 +44,4 @@ under the License.
     <menu ref="modules"/>
     <menu ref="reports"/>
   </body>
-</project>
+</site>

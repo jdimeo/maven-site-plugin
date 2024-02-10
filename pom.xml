@@ -23,7 +23,7 @@ under the License.
   <parent>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-plugins</artifactId>
-    <version>39</version>
+    <version>41</version>
     <relativePath />
   </parent>
 
@@ -194,25 +194,25 @@ under the License.
 
   <properties>
     <mavenVersion>3.2.5</mavenVersion>
+    <minimalMavenBuildVersion>${mavenVersion}</minimalMavenBuildVersion>
     <javaVersion>8</javaVersion>
     <!-- for dependencies -->
-    <jettyVersion>9.4.50.v20221201</jettyVersion>
-    <doxiaVersion>2.0.0-M5</doxiaVersion>
-    <doxiaSitetoolsVersion>2.0.0-M5</doxiaSitetoolsVersion>
+    <jettyVersion>9.4.53.v20231009</jettyVersion>
+    <doxiaVersion>2.0.0-M8</doxiaVersion>
+    <doxiaSitetoolsVersion>2.0.0-M16</doxiaSitetoolsVersion>
     <wagonVersion>3.5.3</wagonVersion>
     <slf4jVersion>1.7.36</slf4jVersion>
     <!-- for ITs -->
-    <checkstylePluginVersion>3.2.1</checkstylePluginVersion>
-    <javadocPluginVersion>3.4.1</javadocPluginVersion>
-    <pmdPluginVersion>3.20.0</pmdPluginVersion>
-    <jxrPluginVersion>3.3.0</jxrPluginVersion>
-    <projectInfoReportsPluginVersion>3.4.2</projectInfoReportsPluginVersion>
-    <surefirePluginVersion>3.0.0-M8</surefirePluginVersion>
-    <mavenPluginPluginVersion>3.7.1</mavenPluginPluginVersion>
-    <mavenReportingImplVersion>4.0.0-M4</mavenReportingImplVersion>
-    <fluidoSkinVersion>2.0.0-M2</fluidoSkinVersion>
-    <surefire.version>3.0.0-M8</surefire.version>
-    <project.build.outputTimestamp>2023-02-11T20:25:37Z</project.build.outputTimestamp>
+    <checkstylePluginVersion>3.3.1</checkstylePluginVersion>
+    <javadocPluginVersion>3.6.2</javadocPluginVersion>
+    <pmdPluginVersion>3.21.2</pmdPluginVersion>
+    <jxrPluginVersion>3.3.1</jxrPluginVersion>
+    <projectInfoReportsPluginVersion>3.5.0</projectInfoReportsPluginVersion>
+    <surefirePluginVersion>3.2.2</surefirePluginVersion>
+    <mavenPluginPluginVersion>3.10.2</mavenPluginPluginVersion>
+    <mavenReportingImplVersion>4.0.0-M13</mavenReportingImplVersion>
+    <testingFluidoSkinVersion>2.0.0-M8</testingFluidoSkinVersion>
+    <project.build.outputTimestamp>2023-12-14T15:35:29Z</project.build.outputTimestamp>
 
   </properties>
 
@@ -220,17 +220,17 @@ under the License.
     <dependency>
       <groupId>org.apache.maven.reporting</groupId>
       <artifactId>maven-reporting-api</artifactId>
-      <version>4.0.0-M4</version>
+      <version>4.0.0-M9</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.reporting</groupId>
       <artifactId>maven-reporting-exec</artifactId>
-      <version>2.0.0-M4</version>
+      <version>2.0.0-M12</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.shared</groupId>
       <artifactId>maven-shared-utils</artifactId>
-      <version>3.3.4</version>
+      <version>3.4.2</version>
     </dependency>
 
     <!-- Maven -->
@@ -244,7 +244,7 @@ under the License.
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-compat</artifactId>
       <version>${mavenVersion}</version>
-      <scope>provided</scope>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -286,7 +286,7 @@ under the License.
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-archiver</artifactId>
-      <version>3.6.0</version>
+      <version>3.6.1</version>
     </dependency>
 
     <!-- dependencies to annotations -->
@@ -307,7 +307,7 @@ under the License.
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-archiver</artifactId>
-      <version>4.6.1</version>
+      <version>4.9.0</version>
     </dependency>
 
     <dependency>
@@ -324,7 +324,10 @@ under the License.
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-utils</artifactId>
-      <version>3.5.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-xml</artifactId>
     </dependency>
 
     <!-- Doxia -->
@@ -369,7 +372,7 @@ under the License.
     <!-- Doxia Sitetools -->
     <dependency>
       <groupId>org.apache.maven.doxia</groupId>
-      <artifactId>doxia-decoration-model</artifactId>
+      <artifactId>doxia-site-model</artifactId>
       <version>${doxiaSitetoolsVersion}</version>
     </dependency>
 
@@ -404,6 +407,12 @@ under the License.
           <artifactId>slf4j-nop</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.14.0</version>
     </dependency>
 
     <dependency>
@@ -481,7 +490,7 @@ under the License.
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>2.11.0</version>
+      <version>2.15.1</version>
       <scope>test</scope>
     </dependency>
 
@@ -500,6 +509,40 @@ under the License.
     </dependency>
   </dependencies>
 
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-plugin-report-plugin</artifactId>
+          <configuration>
+            <requirementsHistories>
+              <requirementsHistory>
+                <version>3.11.0</version>
+                <maven>3.0.5</maven>
+                <jdk>1.7</jdk>
+              </requirementsHistory>
+              <requirementsHistory>
+                <version>3.9.0</version>
+                <maven>3.0</maven>
+                <jdk>1.7</jdk>
+              </requirementsHistory>
+              <requirementsHistory>
+                <version>3.7.1</version>
+                <maven>2.2.1</maven>
+                <jdk>1.6</jdk>
+              </requirementsHistory>
+              <requirementsHistory>
+                <version>3.4</version>
+                <maven>2.2.1</maven>
+                <jdk>1.5</jdk>
+              </requirementsHistory>
+            </requirementsHistories>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
   <repositories>
     <repository>
       <id>jitpack.io</id>
@@ -514,12 +557,42 @@ under the License.
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-clean-plugin</artifactId>
+            <!--
+            This is necessary if "mvn site" has been invoked previously with 3.x
+            and leaves 0-byte files in the local repository for MRM Maven Plugin
+            to serve which are broken from a consumer's PoV.
+            -->
+            <executions>
+              <execution>
+                <id>delete-0-byte-site-descriptors</id>
+                <goals>
+                  <goal>clean</goal>
+                </goals>
+                <phase>pre-integration-test</phase>
+                <configuration>
+                  <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                  <filesets>
+                    <fileset>
+                      <directory>${settings.localRepository}/org/apache/apache</directory>
+                      <includes>
+                        <include>**/*-site*.xml</include>
+                      </includes>
+                    </fileset>
+                  </filesets>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-invoker-plugin</artifactId>
             <configuration>
               <projectsDirectory>src/it/projects</projectsDirectory>
               <settingsFile>src/it/mrm/settings.xml</settingsFile>
               <filterProperties>
                 <mrm.repository.url>${mrm.repository.url}</mrm.repository.url>
+                <fluidoSkinVersion>${testingFluidoSkinVersion}</fluidoSkinVersion>
               </filterProperties>
               <goals>
                 <goal>clean</goal>
@@ -535,12 +608,10 @@ under the License.
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>mrm-maven-plugin</artifactId>
+            <!-- Do not upgrade since 1.6.0 requires Maven 3.6.3+ to run -->
             <version>1.5.0</version>
             <configuration>
               <repositories>
-                <mockRepo>
-                  <source>src/it/mrm/repository</source>
-                </mockRepo>
                 <proxyRepo />
               </repositories>
             </configuration>
@@ -599,6 +670,9 @@ under the License.
 
     <profile>
       <id>dev</id>
+      <properties>
+        <fluidoSkinVersion>${testingFluidoSkinVersion}</fluidoSkinVersion>
+      </properties>
       <build>
         <pluginManagement>
           <plugins>

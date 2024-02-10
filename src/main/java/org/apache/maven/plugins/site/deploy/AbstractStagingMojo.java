@@ -21,7 +21,6 @@ package org.apache.maven.plugins.site.deploy;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.utils.StringUtils;
 
 /**
  * Abstract base class for staging mojos.
@@ -51,7 +50,7 @@ public abstract class AbstractStagingMojo extends AbstractDeployMojo {
      */
     @Override
     protected String determineTopDistributionManagementSiteUrl() throws MojoExecutionException {
-        if (StringUtils.isEmpty(topSiteURL)) {
+        if (topSiteURL == null || topSiteURL.isEmpty()) {
             MavenProject topProject = getTopLevelProject(project);
             String url = getSite(topProject).getUrl();
 

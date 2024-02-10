@@ -51,6 +51,7 @@ under the License.
           <version>@project.version@</version>
           <configuration>
             <locales>default,en,fr,de,de_DE,de_AT,zh_TW,eo_EU</locales>
+            <generateSitemap>true</generateSitemap>
           </configuration>
         </plugin>
       </plugins>
@@ -66,6 +67,43 @@ under the License.
           <reportSet>
             <reports>
               <report>index</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>@pmdPluginVersion@</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>pmd</report>
+              <report>cpd</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+        <configuration>
+          <includeXmlInSite>true</includeXmlInSite>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <version>@jxrPluginVersion@</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>jxr-no-fork</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>@javadocPluginVersion@</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>javadoc-no-fork</report>
             </reports>
           </reportSet>
         </reportSets>

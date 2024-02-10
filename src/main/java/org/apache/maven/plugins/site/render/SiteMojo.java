@@ -44,7 +44,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.reporting.MavenReport;
 import org.apache.maven.reporting.MavenReportException;
 import org.apache.maven.reporting.exec.MavenReportExecution;
 import org.apache.maven.shared.utils.logging.MessageBuilder;
@@ -62,7 +61,7 @@ import static org.apache.maven.shared.utils.logging.MessageUtils.buffer;
  * @author <a href="mailto:vincent.siveton@gmail.com">Vincent Siveton</a>
  *
  */
-@Mojo(name = "site", requiresDependencyResolution = ResolutionScope.TEST, requiresReports = true)
+@Mojo(name = "site", requiresDependencyResolution = ResolutionScope.TEST, requiresReports = true, threadSafe = true)
 public class SiteMojo extends AbstractSiteRenderingMojo {
     private static final int BATCH_SIZE = 100;
     /**
@@ -76,14 +75,6 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
      */
     @Parameter(property = "generateReports", defaultValue = "true")
     private boolean generateReports;
-
-    /**
-     * Generate a sitemap. The result will be a "sitemap.html" file at the site root.
-     *
-     * @since 2.1
-     */
-    @Parameter(property = "generateSitemap", defaultValue = "false")
-    private boolean generateSitemap;
 
     /**
      * Whether to validate xml input documents. If set to true, <strong>all</strong> input documents in xml format (in
@@ -118,42 +109,42 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
 
         checkInputEncoding();
 
-        List<MavenReportExecution> reports;
-        if (generateReports) {
-            reports = getReports();
-        } else {
-            reports = Collections.emptyList();
-        }
-
         try {
             List<Locale> localesList = getLocales();
 
-            // Default is first in the list
-            Locale defaultLocale = localesList.get(0);
-
             for (Locale locale : localesList) {
                 getLog().info("Rendering site for "
-                        + buffer().strong((locale.equals(defaultLocale) ? "default locale" : "locale '" + locale + "'"))
+                        + buffer().strong(
+                                        (!locale.equals(SiteTool.DEFAULT_LOCALE)
+                                                ? "locale '" + locale + "'"
+                                                : "default locale"))
                                 .toString());
-                renderLocale(locale, reports, localesList);
+                File outputDirectory = getOutputDirectory(locale);
+                List<MavenReportExecution> reports =
+                        generateReports ? getReports(outputDirectory) : Collections.emptyList();
+                renderLocale(locale, reports, localesList, outputDirectory);
             }
         } catch (RendererException e) {
             if (e.getCause() instanceof MavenReportException) {
                 // issue caused by report, not really by Doxia Site Renderer
                 throw new MojoExecutionException(e.getMessage(), e.getCause());
             }
-            throw new MojoExecutionException(e.getMessage(), e);
+            throw new MojoExecutionException("Failed to render reports", e);
         } catch (IOException e) {
             throw new MojoExecutionException("Error during site generation", e);
         }
     }
 
-    private void renderLocale(Locale locale, List<MavenReportExecution> reports, List<Locale> supportedLocales)
+    private void renderLocale(
+            Locale locale, List<MavenReportExecution> reports, List<Locale> supportedLocales, File outputDirectory)
             throws IOException, RendererException, MojoFailureException, MojoExecutionException {
         SiteRenderingContext context = createSiteRenderingContext(locale);
         context.addSiteLocales(supportedLocales);
-        // MSITE-723 add generated site directory, in case some content has been put in pre-site phase
-        context.addSiteDirectory(generatedSiteDirectory);
+        if (!locale.equals(SiteTool.DEFAULT_LOCALE)) {
+            context.addSiteDirectory(new File(generatedSiteDirectory, locale.toString()));
+        } else {
+            context.addSiteDirectory(generatedSiteDirectory);
+        }
 
         context.setInputEncoding(getInputEncoding());
         context.setOutputEncoding(getOutputEncoding());
@@ -162,42 +153,32 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
             getLog().info("Validation is switched on, xml input documents will be validated!");
         }
 
-        File outputDir = getOutputDirectory(locale);
-
         Map<String, DocumentRenderer> documents = locateDocuments(context, reports, locale);
 
         // copy resources
-        siteRenderer.copyResources(context, outputDir);
+        siteRenderer.copyResources(context, outputDirectory);
 
         // 1. render Doxia documents first
-        List<DocumentRenderer> reportDocuments = renderDoxiaDocuments(documents, context, outputDir, false);
+        List<DocumentRenderer> nonDoxiaDocuments = renderDoxiaDocuments(documents, context, outputDirectory, false);
 
-        // 2. then reports
-        // prepare external reports
-        for (MavenReportExecution mavenReportExecution : reports) {
-            MavenReport report = mavenReportExecution.getMavenReport();
-            report.setReportOutputDirectory(outputDir);
-        }
-
-        siteRenderer.render(reportDocuments, context, outputDir);
-
-        if (generateSitemap) {
-            getLog().info("Generating Sitemap.");
-
-            new SiteMap(getOutputEncoding(), i18n).generate(context.getDecoration(), generatedSiteDirectory, locale);
-        }
+        // 2. then non-Doxia documents (e.g., reports)
+        renderNonDoxiaDocuments(nonDoxiaDocuments, context, outputDirectory);
 
         // 3. Generated docs must be (re-)done afterwards as they are often generated by reports
         context.getSiteDirectories().clear();
-        context.addSiteDirectory(generatedSiteDirectory);
+        if (!locale.equals(SiteTool.DEFAULT_LOCALE)) {
+            context.addSiteDirectory(new File(generatedSiteDirectory, locale.toString()));
+        } else {
+            context.addSiteDirectory(generatedSiteDirectory);
+        }
 
         Map<String, DocumentRenderer> generatedDocuments =
                 siteRenderer.locateDocumentFiles(context, false /* not editable */);
 
-        renderDoxiaDocuments(generatedDocuments, context, outputDir, true);
+        renderDoxiaDocuments(generatedDocuments, context, outputDirectory, true);
 
         // copy generated resources also
-        siteRenderer.copyResources(context, outputDir);
+        siteRenderer.copyResources(context, outputDirectory);
     }
 
     /**
@@ -207,7 +188,10 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
      * @return the sublist of documents that are not Doxia source files
      */
     private List<DocumentRenderer> renderDoxiaDocuments(
-            Map<String, DocumentRenderer> documents, SiteRenderingContext context, File outputDir, boolean generated)
+            Map<String, DocumentRenderer> documents,
+            SiteRenderingContext context,
+            File outputDirectory,
+            boolean generated)
             throws RendererException, IOException {
         Map<String, DocumentRenderer> doxiaDocuments = new TreeMap<>();
         List<DocumentRenderer> nonDoxiaDocuments = new ArrayList<>();
@@ -274,12 +258,55 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
         return nonDoxiaDocuments;
     }
 
+    /**
+     * Render non-Doxia documents (e.g., reports) from the list given
+     *
+     * @param documents a collection of documents containing non-Doxia source files
+     */
+    private void renderNonDoxiaDocuments(
+            List<DocumentRenderer> documents, SiteRenderingContext context, File outputDirectory)
+            throws RendererException, IOException {
+        Map<String, Integer> counts = new TreeMap<>();
+
+        for (DocumentRenderer doc : documents) {
+            String type;
+            if (doc instanceof ReportDocumentRenderer || doc instanceof SitePluginReportDocumentRenderer) {
+                type = "report";
+            } else {
+                type = "other";
+            }
+
+            Integer count = counts.get(type);
+            if (count == null) {
+                count = 1;
+            } else {
+                count++;
+            }
+            counts.put(type, count);
+        }
+
+        if (documents.size() > 0) {
+            for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+                String type = entry.getKey();
+                Integer count = entry.getValue();
+
+                MessageBuilder mb = buffer();
+                mb.a("Rendering ");
+                mb.strong(count + " " + type + " document" + (count > 1 ? "s" : ""));
+
+                getLog().info(mb.toString());
+            }
+
+            siteRenderer.render(documents, context, outputDirectory);
+        }
+    }
+
     private File getOutputDirectory(Locale locale) {
         File file;
-        if (locale.equals(SiteTool.DEFAULT_LOCALE)) {
-            file = outputDirectory;
-        } else {
+        if (!locale.equals(SiteTool.DEFAULT_LOCALE)) {
             file = new File(outputDirectory, locale.toString());
+        } else {
+            file = outputDirectory;
         }
 
         // Safety
