@@ -244,11 +244,11 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
                     " in %d batches using %d CPUs",
                     batches.size(), Runtime.getRuntime().availableProcessors());
 
-            getLog().info(mb.toString());
+            getLog().info(mb.build());
 
             batches.stream().parallel().forEach($ -> {
                 try {
-                    siteRenderer.render($, context, outputDir);
+                    siteRenderer.render($, context, outputDirectory);
                 } catch (RendererException | IOException e) {
                     throw new RuntimeException("Error rendering site", e);
                 }
