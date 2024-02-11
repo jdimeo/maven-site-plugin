@@ -102,7 +102,7 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
 
         try {
             Doxia defDoxia = (Doxia) FieldUtils.readField(siteRenderer, "doxia", true);
-            FieldUtils.writeField(siteRenderer, "doxia", new ThreadSafeDoxia(defDoxia), true);
+            FieldUtils.writeField(siteRenderer, "doxia", new ThreadSafeDoxia(getProject(), defDoxia), true);
         } catch (IllegalAccessException e1) {
             getLog().info("Can't replace doxia with thread safe implementation: " + e1.getMessage());
         }

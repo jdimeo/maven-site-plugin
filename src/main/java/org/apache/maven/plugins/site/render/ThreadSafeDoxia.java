@@ -22,6 +22,7 @@ import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.inject.Provider;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.maven.doxia.DefaultDoxia;
 import org.apache.maven.doxia.Doxia;
@@ -31,14 +32,23 @@ import org.apache.maven.doxia.parser.ParseException;
 import org.apache.maven.doxia.parser.Parser;
 import org.apache.maven.doxia.parser.manager.ParserNotFoundException;
 import org.apache.maven.doxia.sink.Sink;
+import org.apache.maven.project.MavenProject;
+import org.asciidoctor.maven.site.ast.AsciidoctorAstDoxiaParser;
 
-public class ThreadSafeDoxia extends DefaultDoxia {
+public class ThreadSafeDoxia extends DefaultDoxia implements Provider<MavenProject> {
     private ThreadLocal<Map<String, Parser>> parsers = ThreadLocal.withInitial(HashMap::new);
 
+    private MavenProject project;
     private Doxia delegate;
 
-    public ThreadSafeDoxia(Doxia delegate) {
+    public ThreadSafeDoxia(MavenProject project, Doxia delegate) {
+        this.project = project;
         this.delegate = delegate;
+    }
+
+    @Override
+    public MavenProject get() {
+        return project;
     }
 
     @Override
@@ -57,6 +67,13 @@ public class ThreadSafeDoxia extends DefaultDoxia {
                         // will throw NPE
                     }
                     return ret;
+                }
+                if ("asciidoc".equals($)) {
+                    return new AsciidoctorAstDoxiaParser() {
+                        {
+                            mavenProjectProvider = ThreadSafeDoxia.this;
+                        }
+                    };
                 }
                 // Else, fall back to the default which are presumably thread
                 // safe instances

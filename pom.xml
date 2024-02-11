@@ -494,6 +494,12 @@ under the License.
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.asciidoctor</groupId>
+      <artifactId>asciidoctor-parser-doxia-module</artifactId>
+      <version>3.0.0-beta1</version>
+    </dependency>
+
     <!-- test -->
     <dependency>
       <groupId>org.apache.maven.plugin-testing</groupId>
