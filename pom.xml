@@ -497,7 +497,7 @@ under the License.
     <dependency>
       <groupId>org.asciidoctor</groupId>
       <artifactId>asciidoctor-parser-doxia-module</artifactId>
-      <version>3.0.0-beta1</version>
+      <version>3.0.0-beta3</version>
     </dependency>
 
     <!-- test -->

@@ -33,7 +33,7 @@ import org.apache.maven.doxia.parser.Parser;
 import org.apache.maven.doxia.parser.manager.ParserNotFoundException;
 import org.apache.maven.doxia.sink.Sink;
 import org.apache.maven.project.MavenProject;
-import org.asciidoctor.maven.site.ast.AsciidoctorAstDoxiaParser;
+import org.asciidoctor.maven.site.parser.AsciidoctorAstDoxiaParser;
 
 public class ThreadSafeDoxia extends DefaultDoxia implements Provider<MavenProject> {
     private ThreadLocal<Map<String, Parser>> parsers = ThreadLocal.withInitial(HashMap::new);
