@@ -159,7 +159,7 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
         siteRenderer.copyResources(context, outputDirectory);
 
         // 1. render Doxia documents first
-        List<DocumentRenderer> nonDoxiaDocuments = renderDoxiaDocuments(documents, context, outputDirectory, false);
+        List<DocumentRenderer> nonDoxiaDocuments = renderDoxiaDocuments(documents, context, outputDirectory);
 
         // 2. then non-Doxia documents (e.g., reports)
         renderNonDoxiaDocuments(nonDoxiaDocuments, context, outputDirectory);
@@ -171,11 +171,6 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
         } else {
             context.addSiteDirectory(generatedSiteDirectory);
         }
-
-        Map<String, DocumentRenderer> generatedDocuments =
-                siteRenderer.locateDocumentFiles(context, false /* not editable */);
-
-        renderDoxiaDocuments(generatedDocuments, context, outputDirectory, true);
 
         // copy generated resources also
         siteRenderer.copyResources(context, outputDirectory);
@@ -190,8 +185,7 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
     private List<DocumentRenderer> renderDoxiaDocuments(
             Map<String, DocumentRenderer> documents,
             SiteRenderingContext context,
-            File outputDirectory,
-            boolean generated)
+            File outputDirectory)
             throws RendererException, IOException {
         Map<String, DocumentRenderer> doxiaDocuments = new TreeMap<>();
         List<DocumentRenderer> nonDoxiaDocuments = new ArrayList<>();
@@ -223,7 +217,7 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
         if (doxiaDocuments.size() > 0) {
             MessageBuilder mb = buffer();
             mb.a("Rendering ");
-            mb.strong(doxiaDocuments.size() + (generated ? " generated" : "") + " Doxia document"
+            mb.strong(doxiaDocuments.size() + " Doxia document"
                     + (doxiaDocuments.size() > 1 ? "s" : ""));
             mb.a(": ");
 
@@ -294,7 +288,7 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
                 mb.a("Rendering ");
                 mb.strong(count + " " + type + " document" + (count > 1 ? "s" : ""));
 
-                getLog().info(mb.toString());
+                getLog().info(mb.build());
             }
 
             siteRenderer.render(documents, context, outputDirectory);
