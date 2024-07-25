@@ -183,9 +183,7 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
      * @return the sublist of documents that are not Doxia source files
      */
     private List<DocumentRenderer> renderDoxiaDocuments(
-            Map<String, DocumentRenderer> documents,
-            SiteRenderingContext context,
-            File outputDirectory)
+            Map<String, DocumentRenderer> documents, SiteRenderingContext context, File outputDirectory)
             throws RendererException, IOException {
         Map<String, DocumentRenderer> doxiaDocuments = new TreeMap<>();
         List<DocumentRenderer> nonDoxiaDocuments = new ArrayList<>();
@@ -217,8 +215,7 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
         if (doxiaDocuments.size() > 0) {
             MessageBuilder mb = buffer();
             mb.a("Rendering ");
-            mb.strong(doxiaDocuments.size() + " Doxia document"
-                    + (doxiaDocuments.size() > 1 ? "s" : ""));
+            mb.strong(doxiaDocuments.size() + " Doxia document" + (doxiaDocuments.size() > 1 ? "s" : ""));
             mb.a(": ");
 
             boolean first = true;
