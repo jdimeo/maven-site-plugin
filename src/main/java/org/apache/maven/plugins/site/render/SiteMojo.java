@@ -23,14 +23,11 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.google.common.collect.Iterators;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.maven.doxia.Doxia;
 import org.apache.maven.doxia.siterenderer.DocumentRenderer;
@@ -236,31 +233,13 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
             mb.format(" using %d CPUs", procs);
             getLog().info(mb.build());
 
-            MutableInt i = new MutableInt();
-            List<Thread> threads = new LinkedList<>();
-            int batchSize = (int) Math.ceil(doxiaDocuments.size() / (double) procs);
-            Iterators.partition(doxiaDocuments.values().iterator(), batchSize).forEachRemaining(batch -> {
-                Thread thread = new Thread(
-                        () -> {
-                            try {
-                                siteRenderer.render(batch, context, outputDirectory);
-                            } catch (RendererException | IOException e) {
-                                throw new RuntimeException("Error rendering site", e);
-                            }
-                        },
-                        "mvn-site-renderer-worker-" + i.getAndIncrement());
-                thread.setDaemon(true);
-                thread.start();
-                threads.add(thread);
-            });
-
-            for (Thread t : threads) {
+            doxiaDocuments.values().stream().parallel().forEach(dr -> {
                 try {
-                    t.join();
-                } catch (InterruptedException e) {
+                    siteRenderer.render(List.of(dr), context, outputDirectory);
+                } catch (RendererException | IOException e) {
                     throw new RuntimeException("Error rendering site", e);
                 }
-            }
+            });
         }
 
         return nonDoxiaDocuments;
