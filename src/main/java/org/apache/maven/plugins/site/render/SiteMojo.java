@@ -207,6 +207,7 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
             }
         }
 
+        int procs = Runtime.getRuntime().availableProcessors();
         if (doxiaDocuments.size() > 0) {
             MessageBuilder mb = buffer();
             mb.a("Rendering ");
@@ -223,13 +224,41 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
                 mb.strong(entry.getValue() + " " + entry.getKey());
             }
 
-            int procs = Runtime.getRuntime().availableProcessors();
             mb.format(" using %d CPUs", procs);
             getLog().info(mb.build());
 
-            doxiaDocuments.values().stream().parallel().forEach(dr -> {
+            doxiaDocuments.stream().parallel().forEach(dr -> {
                 try {
-                    siteRenderer.render(List.of(dr), context, outputDirectory);
+                    siteRenderer.render(Collections.singleton(dr), context, outputDirectory);
+                } catch (RendererException | IOException e) {
+                    throw new RuntimeException("Error rendering site", e);
+                }
+            });
+        }
+
+        if (generatedDoxiaDocuments.size() > 0) {
+            MessageBuilder mb = buffer();
+            mb.a("Rendering ");
+            mb.strong(generatedDoxiaDocuments.size() + " generated Doxia document"
+                    + (generatedDoxiaDocuments.size() > 1 ? "s" : ""));
+            mb.a(": ");
+
+            boolean first = true;
+            for (Map.Entry<String, Integer> entry : generatedCounts.entrySet()) {
+                if (first) {
+                    first = false;
+                } else {
+                    mb.a(", ");
+                }
+                mb.strong(entry.getValue() + " " + entry.getKey());
+            }
+
+            mb.format(" using %d CPUs", procs);
+            getLog().info(mb.build());
+
+            generatedDoxiaDocuments.stream().parallel().forEach(dr -> {
+                try {
+                    siteRenderer.render(Collections.singleton(dr), context, outputDirectory);
                 } catch (RendererException | IOException e) {
                     throw new RuntimeException("Error rendering site", e);
                 }

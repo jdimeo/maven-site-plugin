@@ -28,8 +28,7 @@ under the License.
   </parent>
 
   <artifactId>maven-site-plugin</artifactId>
-  <version>4.0.0-M17-SNAPSHOT</version>
-  <version>4.0.0-P20</version>
+  <version>4.0.0-P21</version>
   <packaging>maven-plugin</packaging>
 
   <name>Apache Maven Site Plugin</name>
