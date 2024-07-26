@@ -19,6 +19,7 @@
 package org.apache.maven.plugins.site.deploy;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.artifact.repository.layout.DefaultRepositoryLayout;
 import org.apache.maven.bridge.MavenRepositorySystem;
 import org.apache.maven.doxia.tools.SiteTool;
 import org.apache.maven.execution.DefaultMavenExecutionRequest;
@@ -51,6 +53,7 @@ public abstract class AbstractSiteDeployWebDavTest extends AbstractMojoTestCase 
 
     File siteTargetPath = new File(getBasedir() + File.separator + "target" + File.separator + "siteTargetDeploy");
 
+    @Override
     @Before
     public void setUp() throws Exception {
         super.setUp();
@@ -199,7 +202,8 @@ public abstract class AbstractSiteDeployWebDavTest extends AbstractMojoTestCase 
                 setVariableValueToObject(
                         mojo,
                         "localRepository",
-                        MavenRepositorySystem.createArtifactRepository("local", "foo", null, null, null));
+                        MavenRepositorySystem.createArtifactRepository(
+                                "local", "foo", new DefaultRepositoryLayout(), null, null));
                 setVariableValueToObject(mojo, "siteTool", getContainer().lookup(SiteTool.class));
                 setVariableValueToObject(mojo, "siteDirectory", new File("foo"));
                 setVariableValueToObject(mojo, "remoteProjectRepositories", Collections.emptyList());
@@ -215,14 +219,14 @@ public abstract class AbstractSiteDeployWebDavTest extends AbstractMojoTestCase 
     }
 
     private void assertContentInFiles() throws Exception {
-        File fileToTest = new File(siteTargetPath, "site" + File.separator + "index.html");
-        assertTrue(fileToTest.exists());
-        String fileContent = FileUtils.readFileToString(fileToTest);
+        File htmlFile = new File(siteTargetPath, "site" + File.separator + "index.html");
+        assertTrue(htmlFile.exists());
+        String fileContent = FileUtils.readFileToString(htmlFile, StandardCharsets.UTF_8);
         assertTrue(fileContent.contains("Welcome to Apache Maven"));
 
-        fileToTest = new File(siteTargetPath, "site" + File.separator + "css" + File.separator + "maven-base.css");
-        assertTrue(fileToTest.exists());
-        fileContent = FileUtils.readFileToString(fileToTest);
+        File cssFile = new File(siteTargetPath, "site" + File.separator + "css" + File.separator + "maven-base.css");
+        assertTrue(cssFile.exists());
+        fileContent = FileUtils.readFileToString(cssFile, StandardCharsets.UTF_8);
         assertTrue(fileContent.contains("background-image: url(../images/collapsed.gif);"));
     }
 
