@@ -28,7 +28,7 @@ under the License.
   </parent>
 
   <artifactId>maven-site-plugin</artifactId>
-  <version>4.0.0-P21</version>
+  <version>4.0.0-P22</version>
   <packaging>maven-plugin</packaging>
 
   <name>Apache Maven Site Plugin</name>
@@ -300,7 +300,6 @@ under the License.
       <groupId>org.sonatype.sisu</groupId>
       <artifactId>sisu-inject-plexus</artifactId>
       <version>1.4.2</version>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>

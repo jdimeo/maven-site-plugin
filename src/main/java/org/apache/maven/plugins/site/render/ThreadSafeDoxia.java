@@ -66,6 +66,7 @@ public class ThreadSafeDoxia extends DefaultDoxia implements Provider<MavenProje
                     } catch (IllegalAccessException e) {
                         // will throw NPE
                     }
+                    ret.setEmitAnchorsForIndexableEntries(false);
                     return ret;
                 }
                 if ("asciidoc".equals($)) {
