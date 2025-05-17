@@ -28,7 +28,7 @@ under the License.
   </parent>
 
   <artifactId>maven-site-plugin</artifactId>
-  <version>4.0.0-P23</version>
+  <version>4.0.0-P24</version>
   <packaging>maven-plugin</packaging>
 
   <name>Apache Maven Site Plugin</name>
@@ -211,7 +211,7 @@ under the License.
     <mavenPluginPluginVersion>3.13.0</mavenPluginPluginVersion>
     <mavenReportingImplVersion>4.0.0-M15</mavenReportingImplVersion>
     <fluidoSkinVersion>2.0.0-M9</fluidoSkinVersion>
-    <project.build.outputTimestamp>2024-07-17T13:43:56Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2025-05-17T01:30:29Z</project.build.outputTimestamp>
 
   </properties>
 

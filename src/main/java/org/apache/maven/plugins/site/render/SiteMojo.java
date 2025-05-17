@@ -259,8 +259,8 @@ public class SiteMojo extends AbstractSiteRenderingMojo {
             generatedDoxiaDocuments.stream().parallel().forEach(dr -> {
                 try {
                     siteRenderer.render(Collections.singleton(dr), context, outputDirectory);
-                } catch (RendererException | IOException e) {
-                    throw new RuntimeException("Error rendering site", e);
+                } catch (RendererException | IOException | NullPointerException e) {
+                    throw new RuntimeException("Error rendering site page " + dr.getOutputPath(), e);
                 }
             });
         }
